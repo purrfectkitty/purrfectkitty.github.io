@@ -665,11 +665,11 @@ p {
 }
 
 a {
-    color: #2879d0;
+    color: #800796;
 }
 
 a:hover {
-    color: #2268b2;
+    color: #9e23b4;
 }
 
 header {
@@ -873,7 +873,7 @@ form {
     padding-right: 0.3em;
     margin-left: -1.5em;
     content: "//";
-    color: #9ddcff;
+    color: #800796;
 }
 
 #main-content h3 {
