@@ -1,0 +1,87 @@
+from urllib.parse import urlencode
+from requests import Session
+from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError, InvalidURL, ConnectionError
+import json
+
+##########################################################
+#                Configure your stuff here               #
+##########################################################
+
+clientId=""  a3ul0q5388l2tb719sviy5b08eysgx
+accessToken="" irzh5lt9lth74uw0sndzqz7es77076
+
+channelName=""  KittyChaos
+saveLocation = /var/www/api/subscriberListTest.txt
+
+###################################################################
+
+session=Session()
+channelId=""
+
+
+channelIdUrl="https://api.twitch.tv/kraken/users?login="+channelName
+
+retryAdapter = HTTPAdapter(max_retries=2)
+session.mount('https://',retryAdapter)
+session.mount('http://',retryAdapter)
+
+#Find the Channel ID
+response = session.get(channelIdUrl, headers={
+'Client-ID': clientId,
+'Accept': 'application/vnd.twitchtv.v5+json',
+'Content-Type': 'application/json'
+})
+try:
+    result = json.loads(response.text)
+except:
+    result = None
+
+if (result):
+    channelId = result["users"][0]["_id"]
+
+print(channelId)
+
+result = None
+response = None
+offset=0
+limit=100
+subList=[]
+
+while (True):
+    apiRequestUrl="https://api.twitch.tv/kraken/channels/"+channelId+"/subscriptions?limit="+str(limit)+"&offset="+str(offset)
+
+    #Do the API Lookup
+    response = session.get(apiRequestUrl, headers={
+    'Client-ID': clientId,
+    'Accept': 'application/vnd.twitchtv.v5+json',
+    'Authorization': 'OAuth '+accessToken,
+    'Content-Type': 'application/json'
+    })
+
+    try:
+        result = json.loads(response.text)
+    except:
+        result = None
+
+    if (result):
+        for sub in result["subscriptions"]:
+            name=sub['user']['display_name']
+            if name!=channelName:
+                print(name)
+                subList.append(sub['user']['display_name'])
+    else:
+        break
+
+    if (len(result["subscriptions"])==limit):
+        offset+=limit
+    else:
+        print("Done")
+        break
+
+
+if(result):
+    f = open(saveLocation,'w')
+    for sub in subList:
+        f.write(sub+"\n")
+    f.close()
